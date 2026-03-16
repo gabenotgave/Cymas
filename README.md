@@ -1,0 +1,267 @@
+# LANtern
+
+A local WiFi network health monitor with LLM-powered diagnostics.
+
+Python 3.10+ • MIT License • Early Development
+
+---
+
+## Overview
+
+LANtern runs as a background agent on macOS, sampling network health every few minutes and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows with minimal changes, although those platforms are currently untested.
+
+## Features
+
+- Per-metric time-series charts  
+- Device count correlation view  
+- DNS cache hit/miss visualization  
+- WiFi radio health tracking  
+- Anomaly detection (2σ spike detection)  
+- LLM-powered diagnosis via any Gemini or Anthropic model  
+- CSV export for ML or custom analysis  
+- macOS native scheduling via launchd  
+
+## Tech stack
+
+| Backend                             | Frontend                                 |
+| ----------------------------------- | ---------------------------------------- |
+| Python                              | React                                    |
+| FastAPI                             | Vite                                     |
+| pandas                              | Recharts                                 |
+| LiteLLM                             | Tailwind CSS                             |
+| python-dotenv                       | lucide-react                             |
+
+## Project structure
+
+```text
+LANtern/
+├── api/                        # FastAPI application (main app + routers)
+│   ├── __init__.py
+│   ├── main.py                 # FastAPI app entrypoint
+│   └── routers/
+│       ├── __init__.py
+│       ├── metrics.py          # CSV-backed metrics endpoints
+│       └── analysis.py         # LLM-powered analysis endpoint
+├── probes/                     # Platform-specific probes for network metrics
+│   ├── gateway.py              # Default gateway discovery
+│   ├── ping_probe.py           # Gateway/external ping sampling
+│   ├── dns_probe.py            # DNS resolution timing
+│   ├── http_probe.py           # HTTP TTFB probe
+│   ├── wifi_probe.py           # WiFi radio stats (RSSI, noise, SNR, channel, rate)
+│   └── arp_probe.py            # Active device count via ARP table
+├── io/                         # Persistence and structured I/O helpers
+│   └── writer.py               # CSV writer for normalized metric rows
+├── dashboard/                  # React + Vite dashboard
+│   ├── index.html              # SPA HTML shell
+│   ├── vite.config.js          # Dev server and proxy config
+│   └── src/
+│       ├── main.jsx            # React root
+│       ├── App.jsx             # Top-level layout and routing
+│       ├── constants/          # Frontend constants (thresholds, etc.)
+│       │   └── thresholds.js
+│       ├── hooks/              # Data-fetching hooks
+│       │   └── useMetrics.js
+│       ├── components/         # UI components and charts
+│       │   ├── NavBar.jsx
+│       │   ├── StatCards.jsx
+│       │   ├── TimeSeriesChart.jsx
+│       │   ├── DnsChart.jsx
+│       │   ├── WiFiRadioChart.jsx
+│       │   ├── DeviceCorrelationChart.jsx
+│       │   ├── RawTable.jsx
+│       │   └── AnalysisResultModal.jsx
+│       └── assets/             # Logo and favicon assets
+├── tests/                      # pytest test suite (probes, IO, API)
+│   ├── test_gateway.py
+│   ├── test_ping_probe.py
+│   ├── test_dns_probe.py
+│   ├── test_http_probe.py
+│   ├── test_wifi_probe.py
+│   ├── test_arp_probe.py
+│   └── test_writer.py
+├── config.py                   # Global configuration (intervals, hosts, CSV path)
+├── main.py                     # Logger loop: orchestrates probes and CSV writes
+├── .env.example                # Example environment config for LLM keys and model
+├── requirements.txt            # Python dependencies
+├── run_lantern.sh              # Helper script to start logger, API, and dashboard
+└── LICENSE                     # MIT license
+```
+
+## Getting started
+
+### Prerequisites
+
+- Python 3.10+  
+- Node.js 18+  
+- Google AI Studio API key (for Gemini) or Anthropic API key  
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/your-org/lantern.git
+   cd lantern
+   ```
+
+2. **Create and activate a Python virtual environment**
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. **Install Python dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Install dashboard dependencies**
+
+   ```bash
+   cd dashboard
+   npm install
+   cd ..
+   ```
+
+5. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and set at least:
+
+   ```env
+   GEMINI_API_KEY=your_google_ai_studio_key
+   LANTERN_MODEL=gemini/gemini-2.5-flash-lite
+   ```
+
+   Alternatively, you can use `ANTHROPIC_API_KEY` with an Anthropic-supported model via LiteLLM.
+
+6. **Run the monitor (logger + probes)**
+
+   ```bash
+   source .venv/bin/activate
+   python main.py
+   ```
+
+7. **Run the API**
+
+   ```bash
+   source .venv/bin/activate
+   uvicorn api.main:app --reload --port 8000
+   ```
+
+8. **Run the dashboard**
+
+   ```bash
+   cd dashboard
+   npm run dev
+   ```
+
+9. **Open the dashboard**
+
+   Visit:
+
+   ```text
+   http://localhost:5173
+   ```
+
+## Configuration
+
+| Variable           | Required                               | Default                     | Description                                                                                  |
+| ------------------ | -------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `LANTERN_MODEL`    | Yes (for LLM diagnostics)             | _none_                      | Full model ID for LiteLLM, for example `gemini/gemini-2.5-flash-lite` or an Anthropic model. |
+| `GEMINI_API_KEY`   | Yes, if using Gemini                  | _none_                      | Google AI Studio API key. Required when `LANTERN_MODEL` points to a Gemini model.           |
+| `ANTHROPIC_API_KEY`| Yes, if using Anthropic               | _none_                      | Anthropic API key. Required when `LANTERN_MODEL` points to an Anthropic model.              |
+| `INTERVAL_SECONDS` | No                                    | `10`                        | Probe sampling interval in seconds. Controls how frequently LANtern logs a new CSV row.     |
+| `CSV_PATH`         | No                                    | `lantern_data.csv` in repo | Absolute or relative path to the metrics CSV file used by the logger and API.               |
+
+Only one of `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` is required, depending on which provider you choose.
+
+## Running as a background service (macOS)
+
+To keep LANtern running without an open terminal, you can use `launchd`:
+
+1. Copy the provided `.plist` file (for example `com.lantern.monitor.plist`) into:
+
+   ```text
+   ~/Library/LaunchAgents/
+   ```
+
+2. Load the job with `launchctl`:
+
+   ```bash
+   launchctl load -w ~/Library/LaunchAgents/com.lantern.monitor.plist
+   ```
+
+3. The logger will now start automatically on boot and run in the background. You can unload it with:
+
+   ```bash
+   launchctl unload -w ~/Library/LaunchAgents/com.lantern.monitor.plist
+   ```
+
+## Running tests
+
+```bash
+pytest
+```
+
+All tests use `pytest-mock` to stub network and subprocess calls, so no real network traffic is generated during the test run.
+
+## Contributing
+
+### Reporting issues
+
+Please use GitHub Issues to report bugs or request features. Include:
+
+- macOS version  
+- Python version  
+- A small sample of `lantern_data.csv` if the problem is related to metrics or anomalies  
+
+### Pull requests
+
+- Fork the repository.  
+- Create a feature branch:
+
+  ```bash
+  git checkout -b feature/your-feature
+  ```
+
+- Make your changes and ensure the test suite passes:
+
+  ```bash
+  pytest
+  ```
+
+- Open a pull request against `main` with a clear description of the change and why it is needed.
+
+### Areas that would benefit from contributions
+
+- Linux and Windows probe support  
+- Additional ML model integrations (forecasting, clustering)  
+- nmap-based active device scanning for more accurate device counts  
+- Raspberry Pi deployment guide  
+
+## Roadmap
+
+- [x] probe suite
+- [x] CSV logging
+- [x] FastAPI backend
+- [x] React dashboard
+- [x] LLM diagnostics
+- [ ] ML degradation prediction model
+- [ ] nmap integration for accurate device counting
+- [ ] Dark mode dashboard
+- [ ] Multi-network support
+
+## License
+
+LANtern is open source software licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+LANtern’s LLM integration is built on top of [LiteLLM](https://github.com/BerriAI/litellm), which provides a unified interface over multiple LLM providers.
+

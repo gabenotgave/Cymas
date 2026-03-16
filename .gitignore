@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.log
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# MacOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node / frontend
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+dashboard/.eslintcache
+
+# Local environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Local data artifacts
+lantern_data.csv
+*.csv
+
+# Launchd and OS-specific service artifacts
+*.plist
+
+# Misc
+*.bak
+*.tmp
