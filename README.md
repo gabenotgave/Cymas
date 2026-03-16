@@ -1,4 +1,4 @@
-![LANtern](dashboard/src/assets/logo-large.png)
+![LANtern](dashboard/src/assets/logo-large-black.png)
 
 A local WiFi network health monitor with LLM-powered diagnostics.
 
