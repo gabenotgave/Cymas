@@ -1,8 +1,9 @@
-# LANtern
+![LANtern](dashboard/src/assets/logo-large.png)
 
 A local WiFi network health monitor with LLM-powered diagnostics.
 
-Python 3.10+ • MIT License • Early Development
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
