@@ -9,7 +9,7 @@ A local WiFi network health monitor with LLM-powered diagnostics.
 
 ## Overview
 
-LANtern runs as a background agent on macOS, sampling network health every few minutes and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows with minimal changes, although those platforms are currently untested.
+LANtern runs as a cross-platform background agent, sampling network health at any set frequency and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows, although those platforms are currently untested.
 
 ## Features
 
@@ -20,7 +20,7 @@ LANtern runs as a background agent on macOS, sampling network health every few m
 - Anomaly detection (2σ spike detection)  
 - LLM-powered diagnosis via any Gemini or Anthropic model  
 - CSV export for ML or custom analysis  
-- macOS native scheduling via launchd  
+- native scheduling
 
 ## Tech stack
 
@@ -132,14 +132,7 @@ LANtern/
    cp .env.example .env
    ```
 
-   Edit `.env` and set at least:
-
-   ```env
-   GEMINI_API_KEY=your_google_ai_studio_key
-   LANTERN_MODEL=gemini/gemini-2.5-flash-lite
-   ```
-
-   Alternatively, you can use `ANTHROPIC_API_KEY` with an Anthropic-supported model via LiteLLM.
+   Edit `.env` and set **`LANTERN_MODEL`** to the LiteLLM model ID you want (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`) and the corresponding provider API key. LiteLLM supports many providers (Google, Anthropic, OpenAI, Azure, Groq, Together, Cohere, Mistral, OpenRouter, etc.); see `.env.example` for placeholder variable names and the [Configuration](#configuration) table below.
 
 6. **Run the monitor (logger + probes)**
 
@@ -171,6 +164,8 @@ LANtern/
    ```
 
 ## Configuration
+
+Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`config.py`** at the project root; edit that file to change probe intervals or which hosts are used for health checks.
 
 | Variable           | Required                               | Default                     | Description                                                                                  |
 | ------------------ | -------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
@@ -218,7 +213,7 @@ All tests use `pytest-mock` to stub network and subprocess calls, so no real net
 
 Please use GitHub Issues to report bugs or request features. Include:
 
-- macOS version  
+- OS & OS version  
 - Python version  
 - A small sample of `lantern_data.csv` if the problem is related to metrics or anomalies  
 
@@ -241,7 +236,7 @@ Please use GitHub Issues to report bugs or request features. Include:
 
 ### Areas that would benefit from contributions
 
-- Linux and Windows probe support  
+- Linux and Windows probe testing  
 - Additional ML model integrations (forecasting, clustering)  
 - nmap-based active device scanning for more accurate device counts  
 - Raspberry Pi deployment guide  
@@ -265,4 +260,3 @@ LANtern is open source software licensed under the MIT License. See the [LICENSE
 ## Acknowledgements
 
 LANtern’s LLM integration is built on top of [LiteLLM](https://github.com/BerriAI/litellm), which provides a unified interface over multiple LLM providers.
-
