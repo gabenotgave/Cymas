@@ -101,7 +101,7 @@ LANtern/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-org/lantern.git
+   git clone https://github.com/gabenotgave/LANtern.git
    cd lantern
    ```
 
@@ -167,15 +167,14 @@ LANtern/
 
 Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`config.py`** at the project root; edit that file to change probe intervals or which hosts are used for health checks.
 
-| Variable           | Required                               | Default                     | Description                                                                                  |
-| ------------------ | -------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| `LANTERN_MODEL`    | Yes (for LLM diagnostics)             | _none_                      | Full model ID for LiteLLM, for example `gemini/gemini-2.5-flash-lite` or an Anthropic model. |
-| `GEMINI_API_KEY`   | Yes, if using Gemini                  | _none_                      | Google AI Studio API key. Required when `LANTERN_MODEL` points to a Gemini model.           |
-| `ANTHROPIC_API_KEY`| Yes, if using Anthropic               | _none_                      | Anthropic API key. Required when `LANTERN_MODEL` points to an Anthropic model.              |
-| `INTERVAL_SECONDS` | No                                    | `10`                        | Probe sampling interval in seconds. Controls how frequently LANtern logs a new CSV row.     |
-| `CSV_PATH`         | No                                    | `lantern_data.csv` in repo | Absolute or relative path to the metrics CSV file used by the logger and API.               |
+| Variable            | Required                    | Default                     | Description                                                                                  |
+| ------------------- | --------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `LANTERN_MODEL`     | Yes (for LLM diagnostics)   | _none_                      | Full LiteLLM model ID (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`, `groq/llama-3.1-70b-versatile`). |
+| Provider API keys   | One matching your model     | _none_                      | Set the key for your chosen provider. `.env.example` lists placeholders: `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `AZURE_API_KEY`, `GROQ_API_KEY`, `TOGETHER_API_KEY`, `COHERE_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`. See [LiteLLM providers](https://docs.litellm.ai/docs/providers) for more. |
+| `INTERVAL_SECONDS`  | No                          | `10`                        | Probe sampling interval in seconds. Controls how frequently LANtern logs a new CSV row.     |
+| `CSV_PATH`          | No                          | `lantern_data.csv` in repo  | Absolute or relative path to the metrics CSV file used by the logger and API.               |
 
-Only one of `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` is required, depending on which provider you choose.
+You only need **one** provider API key—the one that matches the provider prefix in `LANTERN_MODEL`.
 
 ## Running as a background service (macOS)
 
