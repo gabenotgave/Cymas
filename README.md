@@ -18,7 +18,7 @@ LANtern runs as a cross-platform background agent, sampling network health at an
 - DNS cache hit/miss visualization  
 - WiFi radio health tracking  
 - Anomaly detection (2σ spike detection)  
-- LLM-powered diagnosis via any Gemini or Anthropic model  
+- LLM-powered diagnosis via any frontier model  
 - CSV export for ML or custom analysis  
 - native scheduling
 

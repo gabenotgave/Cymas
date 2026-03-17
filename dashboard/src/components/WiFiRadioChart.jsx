@@ -27,6 +27,16 @@ export default function WiFiRadioChart({ data }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
       <h2 className="text-gray-700 font-medium text-sm mb-4">WiFi radio health</h2>
+      <div className="flex gap-4 mb-3">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: BLUE }} />
+          <span className="text-gray-500 text-xs">SNR (dB)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: EMERALD }} />
+          <span className="text-gray-500 text-xs">TX rate (Mbps)</span>
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
