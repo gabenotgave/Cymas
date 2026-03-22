@@ -208,30 +208,7 @@ All tests use `pytest-mock` to stub network and subprocess calls, so no real net
 
 ## Contributing
 
-### Reporting issues
-
-Please use GitHub Issues to report bugs or request features. Include:
-
-- OS & OS version  
-- Python version  
-- A small sample of `lantern_data.csv` if the problem is related to metrics or anomalies  
-
-### Pull requests
-
-- Fork the repository.  
-- Create a feature branch:
-
-  ```bash
-  git checkout -b feature/your-feature
-  ```
-
-- Make your changes and ensure the test suite passes:
-
-  ```bash
-  pytest
-  ```
-
-- Open a pull request against `main` with a clear description of the change and why it is needed.
+We love contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) guide for details on how to get started, our architectural philosophy, and our coding standards.
 
 ### Areas that would benefit from contributions
 
