@@ -105,16 +105,53 @@ def compute_stats(df: pd.DataFrame) -> dict[str, Any]:
     return result
 
 
-SYSTEM_PROMPT = (
-    "You are a professional network engineer performing a root cause analysis on a home WiFi network. "
-    "You will be given statistical summaries and pre-detected anomalies from a network monitoring tool called LANtern. "
-    "Identify likely root causes, explain what the anomalies suggest about the network's health, and provide specific actionable recommendations. "
-    "Structure your response with exactly three sections using these plain-text headers on their own lines: Summary, Findings, and Recommendations. "
-    "Do NOT use markdown syntax (no bullets, no numbered lists, no bold, no headings like '###'). "
-    "Write in short paragraphs and simple sentences. "
-    "Do NOT refer to anomalies by their numeric index (e.g. 'Anomaly 2' or 'Anomalies 2, 6, 7'); instead, describe them in aggregate or by characteristic (e.g. 'several samples with high TTFB'). "
-    "Be concise and technical. Do not speculate beyond what the data supports."
-)
+SYSTEM_PROMPT = """You are a professional network engineer performing a root cause analysis on a home WiFi network using data from a monitoring tool called LANtern.
+
+STATISTICAL SIGNIFICANCE RULES — follow these strictly:
+- Only treat an anomaly as meaningful if it occurs in 2+ consecutive samples OR repeats more than 3 times across the selected time range.
+- Single isolated spikes must be mentioned briefly under Weak Signals but never elevated to a primary finding.
+- Home networks have natural variance of 20-40% in latency metrics. Do not flag variance within this range unless it is sustained.
+
+CORRELATION RULES:
+- Prioritize findings where 2 or more metrics degrade simultaneously.
+- A spike in one metric with no corresponding change in others is likely noise — say so explicitly.
+- Device count correlation is the strongest signal. Weight it heavily.
+
+FORMATTING RULES:
+- All timestamps must be written in human readable UTC format: e.g. "Monday March 16, 2026 at 2:45 PM UTC".
+- Do not use any HTML, markdown, asterisks, pound signs, backticks, or special characters of any kind. Plain text only.
+- Follow the output format below exactly. Every label must appear on its own line. Do not combine labels. Do not skip labels. Do not reorder labels.
+
+OUTPUT FORMAT — copy this structure exactly for every response:
+
+SUMMARY
+Write 2-3 sentences here. Overall health assessment only.
+
+FINDINGS
+FINDING: One sentence describing what was observed.
+METRICS: List the affected metrics.
+TIME: Human readable UTC timestamp or range.
+CONFIDENCE: High, Medium, or Low.
+
+FINDING: One sentence describing what was observed.
+METRICS: List the affected metrics.
+TIME: Human readable UTC timestamp or range.
+CONFIDENCE: High, Medium, or Low.
+
+WEAK SIGNALS
+FINDING: One sentence describing a low confidence observation.
+METRICS: List the affected metrics.
+TIME: Human readable UTC timestamp or range.
+CONFIDENCE: Low.
+
+RECOMMENDATIONS
+ACTION: One specific actionable recommendation.
+ACTION: One specific actionable recommendation.
+
+If there are no meaningful findings write "None." under FINDINGS. If the network is healthy write "None." under RECOMMENDATIONS. Do not add any extra labels, sections, or commentary outside of this structure."""
+
+
+Z_SCORE_THRESHOLD = 3
 
 
 def build_prompt(stats: dict[str, Any], anomalies: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -186,7 +223,7 @@ def build_prompt(stats: dict[str, Any], anomalies: list[dict[str, Any]]) -> list
         anomalies_block = "\n".join(anomaly_lines)
     else:
         anomalies_block = (
-            "No statistical anomalies detected (no values exceeded 2 standard deviations above mean)."
+            f"No statistical anomalies detected (no values exceeded {Z_SCORE_THRESHOLD} standard deviations above mean)."
         )
 
     user_content = (
@@ -205,7 +242,7 @@ def build_prompt(stats: dict[str, Any], anomalies: list[dict[str, Any]]) -> list
 
 
 def detect_anomalies(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Detect simple statistical anomalies based on mean + 2*std threshold."""
+    """Detect simple statistical anomalies based on mean + Z_SCORE_THRESHOLD*std threshold."""
 
     anomalies: list[dict[str, Any]] = []
 
@@ -219,9 +256,15 @@ def detect_anomalies(df: pd.DataFrame) -> list[dict[str, Any]]:
         if pd.isna(std) or std == 0:
             continue
 
-        threshold = mean + 2 * std
+        threshold = mean + Z_SCORE_THRESHOLD * std
         mask = series > threshold
         if not mask.any():
+            continue
+
+        # Skip metrics with too few or too infrequent anomalies
+        if mask.sum() < 3:
+            continue
+        if mask.mean() < 0.02:
             continue
 
         for idx in df.index[mask]:
