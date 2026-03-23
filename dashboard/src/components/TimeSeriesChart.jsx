@@ -66,7 +66,7 @@ export default function TimeSeriesChart({ data }) {
   const warningRanges = computeWarningRanges(data);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+    <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
       <h2 className="text-gray-700 font-medium text-sm mb-4">Network performance over time</h2>
       <ResponsiveContainer width="100%" height={320}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>

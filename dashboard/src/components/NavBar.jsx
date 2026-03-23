@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sun, Moon } from "lucide-react";
 
 import logo from "../assets/logo.png";
 
@@ -44,7 +44,7 @@ export default function NavBar({ ssid, lastUpdated, darkMode, setDarkMode}) {
         </div>
 
         <div className="flex items-center gap-3">
-         <button className="text-white" onClick={()=> setDarkMode(!darkMode)}>{darkMode ? "Light Mode" : "Dark Mode"}</button>
+         <button className="text-white" onClick={()=> setDarkMode(!darkMode)}>{darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}</button>
           {ssid != null && ssid !== "" && (
             <span className="bg-gray-700 text-gray-300 text-xs rounded-full px-3 py-1">
               {ssid}

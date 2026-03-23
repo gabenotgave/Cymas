@@ -113,9 +113,9 @@ export default function RawTable() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="dark:bg-zinc-800 bg-white rounded-2xl dark:border-zinc-700 border-gray-100 p-5">
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-blue-500" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 dark:border-zinc-700 border-gray-200 border-t-blue-500" />
         </div>
       </div>
     );
@@ -123,7 +123,7 @@ export default function RawTable() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border dark:border-zinc-700 border-gray-100 p-5">
         <p className="text-red-400 text-sm">{error}</p>
       </div>
     );
@@ -131,7 +131,7 @@ export default function RawTable() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="dark:bg-zinc-800 bg-white  rounded-2xl shadow-sm border dark:border-zinc-700 border-gray-100 p-5">
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-gray-700 font-medium text-sm h-9 flex items-center">

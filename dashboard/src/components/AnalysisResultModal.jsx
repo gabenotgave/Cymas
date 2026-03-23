@@ -34,10 +34,10 @@ export default function AnalysisResultModal({ result, onClose }) {
       onClick={handleBackdropClick}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[85vh]"
+        className="dark:bg-zinc-800 bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-b dark:border-zinc-700 border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BrainCircuit size={16} className="text-gray-400" />
             <h2 className="text-gray-800 font-medium text-base">Network Diagnosis</h2>

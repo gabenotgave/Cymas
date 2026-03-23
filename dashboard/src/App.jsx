@@ -28,10 +28,10 @@ export default function App() {
   return (
     <>
       <NavBar darkMode = {darkMode} setDarkMode= {setDarkMode} ssid={latest?.wifi_ssid} lastUpdated={latest?.timestamp} />
-      <div className="pt-16 min-h-screen dark:bg-slate-900 bg-slate-200">
+      <div className="pt-16 min-h-screen dark:bg-zinc-900 bg-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {error != null && error !== "" && !dismissedError && (
-            <div className="mb-4 flex items-center justify-between gap-4 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-red-700 text-sm">
+            <div className="dark:bg-zinc-800 mb-4 flex items-center justify-between gap-4 rounded-lg bg-red-50 border dark:border-zinc-700 border-red-100 px-4 py-3 text-red-700 text-sm">
               <span>{error}</span>
               <button
                 type="button"
@@ -60,7 +60,7 @@ export default function App() {
                 <DeviceCorrelationChart data={timeseries} />
               </section>
               <section id="raw-data" className="mb-8">
-                <RawTable />
+                <RawTable/>
               </section>
             </>
           )}
