@@ -4,7 +4,7 @@ This document provides specific operational context for coding agents editing or
 
 ## 1. Architecture Philosophy 
 LANtern operates on a **decoupled** architecture.
-- **The System Monitor:** A background process configured in `main.py` runs platform-specific (mostly macOS-based) probes and logs output directly to a flat CSV file (`lantern_data.csv`).
+- **The System Monitor:** A background process configured in `probes/main.py` runs platform-specific (mostly macOS-based) probes and logs output directly to a flat CSV file (`lantern_data.csv`). Configuration is in `probes/config.py`.
 - **The Backend API:** A FastAPI instance (`api/main.py`) reads from the CSV to expose endpoints for the dashboard and interfaces with `LiteLLM` for AI-powered diagnostics.
 - **The Frontend:** A React/Vite web application built to visualize data metrics using charts.
 
@@ -20,7 +20,7 @@ When updating data flow, never couple the frontend directly to the system probes
 ### Working on Probes (`probes/`)
 - **Cross-Platform Compatibility is a Priority:** Probes must be portable across macOS, Linux, and Windows. Cross-platform support is a main selling point of LANtern.
 - *Note on Linux:* WiFi stats retrieval currently has known limitations on Linux (e.g., SNR & Channel metrics are absent). When modifying probes, aim to improve or maintain broad compatibility.
-- When asked to add or modify probes, check `config.py` for target configurations.
+- When asked to add or modify probes, check `probes/config.py` for target configurations.
 - Ensure any breaking changes do not corrupt the formatting of the `lantern_data.csv` structure without appropriately migrating the FastAPI routing scripts (`api/routers/metrics.py`).
 
 ### Writing and Updating Tests (`tests/`)

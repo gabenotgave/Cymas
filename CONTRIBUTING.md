@@ -53,7 +53,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 LANtern is built on a **decoupled architecture**:
 
-1.  **The System Monitor (`probes/`, `main.py`)**: A background process that runs platform-specific probes.
+1.  **The System Monitor (`probes/`)**: A background process that runs platform-specific probes. The main entry point is `probes/main.py` and configuration is in `probes/config.py`.
 2.  **The Persistence Layer (`lantern_data.csv`)**: A flat CSV file acting as the singular source of truth.
 3.  **The Backend API (`api/`)**: A FastAPI instance that reads the CSV and provides endpoints for the dashboard and AI diagnostics.
 4.  **The Frontend (`dashboard/`)**: A React/Vite application for data visualization.

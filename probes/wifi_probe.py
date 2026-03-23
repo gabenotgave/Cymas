@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 import re
-import config
+from probes import config
 import logging
 
 logger = logging.getLogger(__name__)

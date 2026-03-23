@@ -1,14 +1,15 @@
 import logging
+from datetime import datetime
+import time
+
 from probes.gateway import get_default_gateway_netifaces
 from probes.arp_probe import get_active_device_count
 from probes.dns_probe import ping_dns
 from probes.http_probe import probe_http
 from probes.ping_probe import ping_host
 from probes.wifi_probe import get_wifi_stats
+from probes import config
 from data_io.writer import write_data
-import config
-from datetime import datetime
-import time
 
 def configure_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(

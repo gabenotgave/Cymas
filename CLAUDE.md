@@ -13,7 +13,7 @@ source .venv/bin/activate
 ### Running the Application Structure
 1. **Background Monitor/Logger:** Starts network testing probes.
 ```bash
-python main.py
+python -m probes.main
 ```
 2. **FastAPI Backend:** Serves data to the frontend and provides LLM diagnostics.
 ```bash
@@ -44,6 +44,6 @@ pytest
 
 - **`/probes`**: Scripts for network diagnostics (ping, arp, http resolution).
 - **`/api`**: Holds the standard FastAPI app, connecting the raw read CSV to JSON endpoints in `/routers`.
-- **`config.py`**: A centralized location mapping intervals, testing hosts, and absolute paths for tools.
+- **`probes/config.py`**: A centralized location mapping intervals, testing hosts, and absolute paths for tools.
 - **`lantern_data.csv`**: The primary log database written to by the Python Monitor and read out by the FastAPI.
 - **`/dashboard`**: An SPA application built specifically using React fetching data primarily from FastAPI.
