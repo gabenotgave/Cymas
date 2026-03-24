@@ -1,4 +1,4 @@
-![LANtern](dashboard/src/assets/logo-med-black.png)
+![Cymas](dashboard/src/assets/Cymas-logo-banner.gif)
 
 A local WiFi network health monitor with LLM-powered diagnostics.
 
@@ -9,7 +9,7 @@ A local WiFi network health monitor with LLM-powered diagnostics.
 
 ## Overview
 
-LANtern runs as a cross-platform background agent, sampling network health at any set frequency and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows, although those platforms are currently untested.
+Cymas runs as a cross-platform background agent, sampling network health at any set frequency and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows, although those platforms are currently untested.
 
 ## Features
 
@@ -35,7 +35,7 @@ LANtern runs as a cross-platform background agent, sampling network health at an
 ## Project structure
 
 ```text
-LANtern/
+Cymas/
 ├── api/                        # FastAPI application (main app + routers)
 │   ├── __init__.py
 │   ├── main.py                 # FastAPI app entrypoint
@@ -104,8 +104,8 @@ LANtern/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/gabenotgave/LANtern.git
-   cd lantern
+   git clone https://github.com/gabenotgave/Cymas.git
+   cd Cymas
    ```
 
 2. **Create and activate a Python virtual environment**
@@ -135,7 +135,7 @@ LANtern/
    cp .env.example .env
    ```
 
-   Edit `.env` and set **`LANTERN_MODEL`** to the LiteLLM model ID you want (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`) and the corresponding provider API key. LiteLLM supports many providers (Google, Anthropic, OpenAI, Azure, Groq, Together, Cohere, Mistral, OpenRouter, etc.); see `.env.example` for placeholder variable names and the [Configuration](#configuration) table below.
+   Edit `.env` and set **`CYMAS_MODEL`** to the LiteLLM model ID you want (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`) and the corresponding provider API key. LiteLLM supports many providers (Google, Anthropic, OpenAI, Azure, Groq, Together, Cohere, Mistral, OpenRouter, etc.); see `.env.example` for placeholder variable names and the [Configuration](#configuration) table below.
 
 6. **Run the monitor (logger + probes)**
 
@@ -172,18 +172,18 @@ Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`prob
 
 | Variable            | Required                    | Default                     | Description                                                                                  |
 | ------------------- | --------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
-| `LANTERN_MODEL`     | Yes (for LLM diagnostics)   | _none_                      | Full LiteLLM model ID (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`, `groq/llama-3.1-70b-versatile`). |
+| `CYMAS_MODEL`       | Yes (for LLM diagnostics)   | _none_                      | Full LiteLLM model ID (e.g. `gemini/gemini-2.5-flash-lite`, `anthropic/claude-3-5-sonnet`, `openai/gpt-4o-mini`, `groq/llama-3.1-70b-versatile`). |
 | Provider API keys   | One matching your model     | _none_                      | Set the key for your chosen provider. `.env.example` lists placeholders: `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `AZURE_API_KEY`, `GROQ_API_KEY`, `TOGETHER_API_KEY`, `COHERE_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`. See [LiteLLM providers](https://docs.litellm.ai/docs/providers) for more. |
-| `INTERVAL_SECONDS`  | No                          | `10`                        | Probe sampling interval in seconds. Controls how frequently LANtern logs a new CSV row.     |
+| `INTERVAL_SECONDS`  | No                          | `10`                        | Probe sampling interval in seconds. Controls how frequently Cymas logs a new CSV row.     |
 | `CSV_PATH`          | No                          | `lantern_data.csv` in repo  | Absolute or relative path to the metrics CSV file used by the logger and API.               |
 
-You only need **one** provider API key—the one that matches the provider prefix in `LANTERN_MODEL`.
+You only need **one** provider API key—the one that matches the provider prefix in `CYMAS_MODEL`.
 
 ## Running as a background service (macOS)
 
-To keep LANtern running without an open terminal, you can use `launchd`:
+To keep Cymas running without an open terminal, you can use `launchd`:
 
-1. Copy the provided `.plist` file (for example `com.lantern.monitor.plist`) into:
+1. Copy the provided `.plist` file (for example `com.cymas.monitor.plist`) into:
 
    ```text
    ~/Library/LaunchAgents/
@@ -192,13 +192,13 @@ To keep LANtern running without an open terminal, you can use `launchd`:
 2. Load the job with `launchctl`:
 
    ```bash
-   launchctl load -w ~/Library/LaunchAgents/com.lantern.monitor.plist
+   launchctl load -w ~/Library/LaunchAgents/com.cymas.monitor.plist
    ```
 
 3. The logger will now start automatically on boot and run in the background. You can unload it with:
 
    ```bash
-   launchctl unload -w ~/Library/LaunchAgents/com.lantern.monitor.plist
+   launchctl unload -w ~/Library/LaunchAgents/com.cymas.monitor.plist
    ```
 
 ## Running tests
@@ -234,8 +234,8 @@ We love contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) guide f
 
 ## License
 
-LANtern is open source software licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Cymas is open source software licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 
-LANtern’s LLM integration is built on top of [LiteLLM](https://github.com/BerriAI/litellm), which provides a unified interface over multiple LLM providers.
+Cymas’s LLM integration is built on top of [LiteLLM](https://github.com/BerriAI/litellm), which provides a unified interface over multiple LLM providers.

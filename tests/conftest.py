@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for LANtern test suite."""
+"""Shared pytest fixtures for Cymas test suite."""
 import pytest
 
 from data_io.writer import FIELDNAMES

@@ -1,1 +1,1 @@
-# LANtern API package.
+# Cymas API package.

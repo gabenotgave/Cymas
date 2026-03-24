@@ -1,6 +1,6 @@
-# LANtern - AI Companion Guide (CLAUDE.md)
+# Cymas - AI Companion Guide (CLAUDE.md)
 
-Welcome to LANtern! This file outlines essential commands, coding conventions, and stylistic rules so you can contribute efficiently to the repository.
+Welcome to Cymas! This file outlines essential commands, coding conventions, and stylistic rules so you can contribute efficiently to the repository.
 
 ## Commands
 
@@ -33,7 +33,7 @@ pytest
 ## Formatting & Code Style
 
 - **Python:** The workspace follows standard PEP8 conventions natively. Use explicit types for function parameters where appropriate.
-- **Cross-Platform Portability:** LANtern is designed to run on macOS, Linux, and Windows. When modifying or adding new features (especially hardware or network probes), always prioritize cross-platform compatibility as a core selling point.
+- **Cross-Platform Portability:** Cymas is designed to run on macOS, Linux, and Windows. When modifying or adding new features (especially hardware or network probes), always prioritize cross-platform compatibility as a core selling point.
 - **React Frontend:**
   - Standard React hook patterns (`useState`, `useEffect`).
   - Styling is handled exclusively with **Tailwind CSS**. Avoid writing custom vanilla CSS unless strictly required.
