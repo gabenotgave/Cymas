@@ -1,9 +1,9 @@
-# LANtern AI Agent Instructions
+# Cymas AI Agent Instructions
 
-This document provides specific operational context for coding agents editing or exploring the LANtern project.
+This document provides specific operational context for coding agents editing or exploring the Cymas project.
 
 ## 1. Architecture Philosophy 
-LANtern operates on a **decoupled** architecture.
+Cymas operates on a **decoupled** architecture.
 - **The System Monitor:** A background process configured in `probes/main.py` runs platform-specific (mostly macOS-based) probes and logs output directly to a flat CSV file (`lantern_data.csv`). Configuration is in `probes/config.py`.
 - **The Backend API:** A FastAPI instance (`api/main.py`) reads from the CSV to expose endpoints for the dashboard and interfaces with `LiteLLM` for AI-powered diagnostics.
 - **The Frontend:** A React/Vite web application built to visualize data metrics using charts.
@@ -18,14 +18,14 @@ When updating data flow, never couple the frontend directly to the system probes
 ## 3. Editing Guidelines
 
 ### Working on Probes (`probes/`)
-- **Cross-Platform Compatibility is a Priority:** Probes must be portable across macOS, Linux, and Windows. Cross-platform support is a main selling point of LANtern.
+- **Cross-Platform Compatibility is a Priority:** Probes must be portable across macOS, Linux, and Windows. Cross-platform support is a main selling point of Cymas.
 - *Note on Linux:* WiFi stats retrieval currently has known limitations on Linux (e.g., SNR & Channel metrics are absent). When modifying probes, aim to improve or maintain broad compatibility.
 - When asked to add or modify probes, check `probes/config.py` for target configurations.
 - Ensure any breaking changes do not corrupt the formatting of the `lantern_data.csv` structure without appropriately migrating the FastAPI routing scripts (`api/routers/metrics.py`).
 
 ### Writing and Updating Tests (`tests/`)
-- LANtern uses `pytest` and `pytest-mock`.
+- Cymas uses `pytest` and `pytest-mock`.
 - Ensure tests verify functionality by stubbing subprocess and network calls rather than generating actual network traffic that might cause flakiness.
 
 ### AI Model Management
-- The AI context in LANtern utilizes flexible keys and model identifiers from `.env`. Do not hardcode specific model strings in `router/analysis.py` except as configurable defaults if the environment variables are unset.
+- The AI context in Cymas utilizes flexible keys and model identifiers from `.env`. Do not hardcode specific model strings in `router/analysis.py` except as configurable defaults if the environment variables are unset.

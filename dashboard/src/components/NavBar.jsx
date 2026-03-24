@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 
-import logo from "../assets/logo.png";
+import logo from "../assets/Cymas-logo.png";
 
 const LINKS = [
   { label: "Overview", href: "#overview" },
@@ -23,7 +23,7 @@ export default function NavBar({ ssid, lastUpdated }) {
         <div className="flex items-center gap-2">
           <img
             src={logo}
-            alt="LANtern"
+            alt="Cymas"
             width={130}
           />
         </div>

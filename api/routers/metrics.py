@@ -1,4 +1,4 @@
-"""Metrics router: CSV-backed endpoints for LANtern monitoring data."""
+"""Metrics router: CSV-backed endpoints for Cymas monitoring data."""
 import csv
 import os
 from typing import Any

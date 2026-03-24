@@ -1,8 +1,8 @@
-# Contributing to LANtern
+# Contributing to Cymas
 
-First off, thank you for considering contributing to LANtern! It's people like you who make open-source projects such a great place to learn, inspire, and create.
+First off, thank you for considering contributing to Cymas! It's people like you who make open-source projects such a great place to learn, inspire, and create.
 
-This guide will help you get started with contributing to LANtern. Whether you're fixing a bug, adding a new probe, or improving the dashboard, we appreciate your help.
+This guide will help you get started with contributing to Cymas. Whether you're fixing a bug, adding a new probe, or improving the dashboard, we appreciate your help.
 
 ---
 
@@ -22,8 +22,8 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/gabenotgave/LANtern.git
-    cd LANtern
+    git clone https://github.com/gabenotgave/Cymas.git
+    cd Cymas
     ```
 
 2.  **Backend Setup**
@@ -47,11 +47,11 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
     ```bash
     cp .env.example .env
     ```
-    Edit `.env` to include your `LANTERN_MODEL` and the corresponding provider key (e.g., `GOOGLE_API_KEY`).
+    Edit `.env` to include your `CYMAS_MODEL` and the corresponding provider key (e.g., `GOOGLE_API_KEY`).
 
 ## Architecture & Philosophy
 
-LANtern is built on a **decoupled architecture**:
+Cymas is built on a **decoupled architecture**:
 
 1.  **The System Monitor (`probes/`)**: A background process that runs platform-specific probes. The main entry point is `probes/main.py` and configuration is in `probes/config.py`.
 2.  **The Persistence Layer (`lantern_data.csv`)**: A flat CSV file acting as the singular source of truth.
@@ -62,7 +62,7 @@ LANtern is built on a **decoupled architecture**:
 
 ## Contribution Workflow
 
-1.  **Find an Issue**: Check the [GitHub Issues](https://github.com/gabenotgave/LANtern/issues) for something to work on. If you want to propose a new feature, open an issue first.
+1.  **Find an Issue**: Check the [GitHub Issues](https://github.com/gabenotgave/Cymas/issues) for something to work on. If you want to propose a new feature, open an issue first.
 2.  **Fork and Branch**: Fork the repo and create a branch for your work:
     -   `feature/your-feature-name` for new features.
     -   `fix/your-fix-name` for bug fixes.

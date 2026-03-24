@@ -1,4 +1,4 @@
-"""Analysis endpoints for LANtern metrics."""
+"""Analysis endpoints for Cymas metrics."""
 from __future__ import annotations
 
 import os
@@ -105,7 +105,7 @@ def compute_stats(df: pd.DataFrame) -> dict[str, Any]:
     return result
 
 
-SYSTEM_PROMPT = """You are a professional network engineer performing a root cause analysis on a home WiFi network using data from a monitoring tool called LANtern.
+SYSTEM_PROMPT = """You are a professional network engineer performing a root cause analysis on a home WiFi network using data from a monitoring tool called Cymas.
 
 STATISTICAL SIGNIFICANCE RULES — follow these strictly:
 - Only treat an anomaly as meaningful if it occurs in 2+ consecutive samples OR repeats more than 3 times across the selected time range.
@@ -301,7 +301,7 @@ def run_analysis(request: AnalysisRequest) -> dict[str, Any]:
         anomalies = detect_anomalies(filtered)
         prompt = build_prompt(stats, anomalies)
         response = litellm.completion(
-            model=os.getenv("LANTERN_MODEL"),
+            model=os.getenv("CYMAS_MODEL"),
             messages=prompt,
             stream=False,
         )

@@ -18,7 +18,7 @@ def configure_logging(level: int = logging.INFO) -> None:
     )
 
 def main() -> None:
-    print("LANtern initiated.")
+    print("Cymas initiated.")
     gateway_addr = get_default_gateway_netifaces()
 
     try:
@@ -52,11 +52,11 @@ def main() -> None:
             # Write data to CSV file
             write_data(data, config.CSV_PATH)
 
-            print("LANtern record logged.")
+            print("Cymas record logged.")
 
             time.sleep(config.INTERVAL_SECONDS)
     except KeyboardInterrupt:
-        print("LANtern exiting gracefully.")
+        print("Cymas exiting gracefully.")
 
 if __name__ == "__main__":
     configure_logging()

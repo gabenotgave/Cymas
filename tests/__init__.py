@@ -1,1 +1,1 @@
-# Tests for LANtern WiFi monitoring project.
+# Tests for Cymas WiFi monitoring project.
