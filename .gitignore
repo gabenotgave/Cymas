@@ -19,6 +19,7 @@ venv/
 .idea/
 *.swp
 *.swo
+.kiro/
 
 # Coverage / testing
 .coverage
