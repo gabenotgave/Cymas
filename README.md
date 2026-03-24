@@ -43,7 +43,10 @@ LANtern/
 │       ├── __init__.py
 │       ├── metrics.py          # CSV-backed metrics endpoints
 │       └── analysis.py         # LLM-powered analysis endpoint
-├── probes/                     # Platform-specific probes for network metrics
+├── probes/                     # Platform-specific probes, logger, and configuration
+│   ├── __init__.py             # Package init
+│   ├── config.py               # Global configuration (intervals, hosts, CSV path)
+│   ├── main.py                 # Logger loop: orchestrates probes and CSV writes
 │   ├── gateway.py              # Default gateway discovery
 │   ├── ping_probe.py           # Gateway/external ping sampling
 │   ├── dns_probe.py            # DNS resolution timing
@@ -73,6 +76,8 @@ LANtern/
 │       │   └── AnalysisResultModal.jsx
 │       └── assets/             # Logo and favicon assets
 ├── tests/                      # pytest test suite (probes, IO, API)
+│   ├── __init__.py
+│   ├── conftest.py             # Shared pytest fixtures
 │   ├── test_gateway.py
 │   ├── test_ping_probe.py
 │   ├── test_dns_probe.py
@@ -80,8 +85,6 @@ LANtern/
 │   ├── test_wifi_probe.py
 │   ├── test_arp_probe.py
 │   └── test_writer.py
-├── config.py                   # Global configuration (intervals, hosts, CSV path)
-├── main.py                     # Logger loop: orchestrates probes and CSV writes
 ├── .env.example                # Example environment config for LLM keys and model
 ├── requirements.txt            # Python dependencies
 ├── run_lantern.sh              # Helper script to start logger, API, and dashboard
@@ -138,7 +141,7 @@ LANtern/
 
    ```bash
    source .venv/bin/activate
-   python main.py
+   python -m probes.main
    ```
 
 7. **Run the API**
@@ -165,7 +168,7 @@ LANtern/
 
 ## Configuration
 
-Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`config.py`** at the project root; edit that file to change probe intervals or which hosts are used for health checks.
+Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`probes/config.py`**; edit that file to change probe intervals or which hosts are used for health checks.
 
 | Variable            | Required                    | Default                     | Description                                                                                  |
 | ------------------- | --------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |

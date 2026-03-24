@@ -7,7 +7,7 @@ import pandas as pd
 from fastapi import APIRouter, Query
 from fastapi import HTTPException
 
-import config
+from probes import config
 from data_io.writer import FIELDNAMES
 
 router = APIRouter()
