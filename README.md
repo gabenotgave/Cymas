@@ -1,15 +1,30 @@
-![Cymas](dashboard/src/assets/Cymas-logo-banner.gif)
+<div align="center">
 
-A local WiFi network health monitor with LLM-powered diagnostics.
+  <img src="dashboard/src/assets/Cymas-logo-banner.gif" alt="Cymas" width="600"/>
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+  <br/>
+  <br/>
+
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License"/></a>
+  <a href="https://github.com/gabenotgave/Cymas/stargazers"><img src="https://img.shields.io/github/stars/gabenotgave/Cymas?style=for-the-badge&logo=github" alt="GitHub Stars"/></a>
+  <a href="https://github.com/gabenotgave/Cymas/issues"><img src="https://img.shields.io/github/issues/gabenotgave/Cymas?style=for-the-badge" alt="Open Issues"/></a>
+  <a href="https://github.com/gabenotgave/Cymas/commits/main"><img src="https://img.shields.io/github/last-commit/gabenotgave/Cymas?style=for-the-badge" alt="Last Commit"/></a>
+
+  <br/>
+  <br/>
+
+  <p>A local WiFi network health monitor with LLM-powered diagnostics.</p>
+
+</div>
 
 ---
 
 ## Overview
 
 Cymas runs as a cross-platform background agent, sampling network health at any set frequency and writing results to a local CSV. It tracks gateway ping, external ping, DNS resolution latency, HTTP time-to-first-byte, WiFi radio stats, and active device count. A FastAPI backend and React dashboard sit on top of this data, providing per-metric visualizations and an LLM-powered root cause analysis designed to explain home network degradation in the context of household usage patterns. The probes and scheduler are written for macOS but should be portable to Linux and Windows, although those platforms are currently untested.
+
+---
 
 ## Features
 
@@ -22,15 +37,19 @@ Cymas runs as a cross-platform background agent, sampling network health at any 
 - CSV export for ML or custom analysis  
 - native scheduling
 
+---
+
 ## Tech stack
 
-| Backend                             | Frontend                                 |
-| ----------------------------------- | ---------------------------------------- |
-| Python                              | React                                    |
-| FastAPI                             | Vite                                     |
-| pandas                              | Recharts                                 |
-| LiteLLM                             | Tailwind CSS                             |
-| python-dotenv                       | lucide-react                             |
+| Backend                          | Frontend                          |
+| -------------------------------- | --------------------------------- |
+| Python 3.10+                     | React 18+                         |
+| FastAPI 0.135                    | Vite 6                            |
+| pandas 3.0                       | Recharts 2                        |
+| LiteLLM 1.82                     | Tailwind CSS 3                    |
+| python-dotenv 1.2                | lucide-react 0.460                |
+
+---
 
 ## Project structure
 
@@ -90,6 +109,8 @@ Cymas/
 ├── run_lantern.sh              # Helper script to start logger, API, and dashboard
 └── LICENSE                     # MIT license
 ```
+
+---
 
 ## Getting started
 
@@ -166,6 +187,8 @@ Cymas/
    http://localhost:5173
    ```
 
+---
+
 ## Configuration
 
 Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`probes/config.py`**; edit that file to change probe intervals or which hosts are used for health checks.
@@ -178,6 +201,8 @@ Endpoints (e.g. ping/HTTP targets) and sampling frequency are defined in **`prob
 | `CSV_PATH`          | No                          | `lantern_data.csv` in repo  | Absolute or relative path to the metrics CSV file used by the logger and API.               |
 
 You only need **one** provider API key—the one that matches the provider prefix in `CYMAS_MODEL`.
+
+---
 
 ## Running as a background service (macOS)
 
@@ -201,6 +226,8 @@ To keep Cymas running without an open terminal, you can use `launchd`:
    launchctl unload -w ~/Library/LaunchAgents/com.cymas.monitor.plist
    ```
 
+---
+
 ## Running tests
 
 ```bash
@@ -208,6 +235,8 @@ pytest
 ```
 
 All tests use `pytest-mock` to stub network and subprocess calls, so no real network traffic is generated during the test run.
+
+---
 
 ## Contributing
 
@@ -219,6 +248,8 @@ We love contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) guide f
 - Additional ML model integrations (forecasting, clustering)  
 - nmap-based active device scanning for more accurate device counts  
 - Raspberry Pi deployment guide  
+
+---
 
 ## Roadmap
 
@@ -232,9 +263,13 @@ We love contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) guide f
 - [ ] Dark mode dashboard
 - [ ] Multi-network support
 
+---
+
 ## License
 
 Cymas is open source software licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
 
 ## Acknowledgements
 
