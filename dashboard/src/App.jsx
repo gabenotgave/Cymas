@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import useMetrics from "./hooks/useMetrics";
 import NavBar from "./components/NavBar";
 import StatCards from "./components/StatCards";
@@ -11,14 +11,27 @@ import RawTable from "./components/RawTable";
 export default function App() {
   const { timeseries, summary, latest, loading, error } = useMetrics();
   const [dismissedError, setDismissedError] = useState(false);
-
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
+ 
+  useEffect(()=>{
+    if(darkMode){
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+    else{
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme","light");
+    }
+  },[darkMode])
   return (
     <>
-      <NavBar ssid={latest?.wifi_ssid} lastUpdated={latest?.timestamp} />
-      <div className="pt-16 min-h-screen bg-slate-200">
+      <NavBar darkMode = {darkMode} setDarkMode= {setDarkMode} ssid={latest?.wifi_ssid} lastUpdated={latest?.timestamp} />
+      <div className="pt-16 min-h-screen dark:bg-zinc-900 bg-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {error != null && error !== "" && !dismissedError && (
-            <div className="mb-4 flex items-center justify-between gap-4 rounded-lg bg-red-50 border border-red-100 px-4 py-3 text-red-700 text-sm">
+            <div className="dark:bg-zinc-800 mb-4 flex items-center justify-between gap-4 rounded-lg bg-red-50 border dark:border-zinc-700 border-red-100 px-4 py-3 text-red-700 text-sm">
               <span>{error}</span>
               <button
                 type="button"
@@ -47,7 +60,7 @@ export default function App() {
                 <DeviceCorrelationChart data={timeseries} />
               </section>
               <section id="raw-data" className="mb-8">
-                <RawTable />
+                <RawTable/>
               </section>
             </>
           )}

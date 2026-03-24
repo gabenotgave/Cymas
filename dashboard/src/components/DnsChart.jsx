@@ -31,7 +31,7 @@ export default function DnsChart({ data }) {
   if (!data?.length) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+    <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
       <h2 className="text-gray-700 font-medium text-sm mb-4">DNS resolution</h2>
       <div className="flex gap-4 mb-3">
         <div className="flex items-center gap-1.5">

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sun, Moon } from "lucide-react";
 
 import logo from "../assets/logo.png";
+
 
 const LINKS = [
   { label: "Overview", href: "#overview" },
@@ -13,8 +14,9 @@ function handleNavClick(e, href) {
   e.preventDefault();
   document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
 }
+// Dark Mode
 
-export default function NavBar({ ssid, lastUpdated }) {
+export default function NavBar({ ssid, lastUpdated, darkMode, setDarkMode}) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -42,6 +44,7 @@ export default function NavBar({ ssid, lastUpdated }) {
         </div>
 
         <div className="flex items-center gap-3">
+         <button className="text-white" onClick={()=> setDarkMode(!darkMode)}>{darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}</button>
           {ssid != null && ssid !== "" && (
             <span className="bg-gray-700 text-gray-300 text-xs rounded-full px-3 py-1">
               {ssid}
@@ -60,8 +63,8 @@ export default function NavBar({ ssid, lastUpdated }) {
             <Menu className="w-5 h-5" />
           </button>
         </div>
-      </div>
 
+      </div>
       {menuOpen && (
         <div className="md:hidden bg-gray-900 px-4 pb-3 flex flex-col gap-2">
           {LINKS.map(({ label, href }) => (
@@ -77,6 +80,7 @@ export default function NavBar({ ssid, lastUpdated }) {
               {label}
             </a>
           ))}
+
         </div>
       )}
     </nav>
