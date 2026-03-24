@@ -12,7 +12,6 @@
   <a href="https://github.com/gabenotgave/Cymas/commits/main"><img src="https://img.shields.io/github/last-commit/gabenotgave/Cymas?style=for-the-badge" alt="Last Commit"/></a>
 
   <br/>
-  <br/>
 
   <p>A local WiFi network health monitor with LLM-powered diagnostics.</p>
 
