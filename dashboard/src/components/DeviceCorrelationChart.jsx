@@ -28,7 +28,7 @@ export default function DeviceCorrelationChart({ data }) {
   const step = (maxOpacity - minOpacity) / Math.max(points.length, 1);
 
   return (
-    <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+    <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border dark:border-zinc-700 border-gray-100 p-5">
       <h2 className="text-gray-700 font-medium text-sm mb-4">Device count vs TTFB — correlation view</h2>
       <ResponsiveContainer width="100%" height={260}>
         <ScatterChart margin={{ top: 8, right: 16, left: 32, bottom: 32 }}>
@@ -51,7 +51,7 @@ export default function DeviceCorrelationChart({ data }) {
             type="number"
             dataKey="y"
             name="TTFB"
-            label={{ value: "TTFB (ms)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#6b7280" }}
+            label={{ value: "TTFB (ms)", angle: -90, position: "insideLeft", fontSize: 11, fill: "#6b7280 " }}
             stroke="#9ca3af"
             fontSize={11}
           />

@@ -39,13 +39,13 @@ export default function AnalysisResultModal({ result, onClose }) {
       >
         <div className="px-6 py-4 border-b dark:border-zinc-700 border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BrainCircuit size={16} className="text-gray-400" />
-            <h2 className="text-gray-800 font-medium text-base">Network Diagnosis</h2>
+            <BrainCircuit size={16} className="text-gray-400 dark:text-gray-100" />
+            <h2 className="text-gray-800 dark:text-gray-100 font-medium text-base">Network Diagnosis</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 dark:text-gray-100 hover:text-gray-600 transition-colors"
           >
             <X size={18} />
           </button>
@@ -60,7 +60,7 @@ export default function AnalysisResultModal({ result, onClose }) {
 
             if (trimmed === "Summary" || trimmed === "Findings" || trimmed === "Recommendations") {
               return (
-                <div key={idx} className="text-gray-800 font-medium text-sm mt-4 mb-1">
+                <div key={idx} className="text-gray-800 dark:text-gray-100 font-medium text-sm mt-4 mb-1">
                   {trimmed}
                 </div>
               );

@@ -26,7 +26,7 @@ export default function WiFiRadioChart({ data }) {
 
   return (
     <div className="dark:bg-zinc-800 bg-white rounded-2xl shadow-sm border dark:border-zinc-700 border-gray-100 p-5">
-      <h2 className="text-gray-700 font-medium text-sm mb-4">WiFi radio health</h2>
+      <h2 className="text-gray-700 dark:text-gray-100 font-medium text-sm mb-4">WiFi radio health</h2>
       <div className="flex gap-4 mb-3">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: BLUE }} />

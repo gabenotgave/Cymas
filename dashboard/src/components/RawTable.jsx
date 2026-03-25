@@ -134,7 +134,7 @@ export default function RawTable() {
       <div className="dark:bg-zinc-800 bg-white  rounded-2xl shadow-sm border dark:border-zinc-700 border-gray-100 p-5">
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-gray-700 font-medium text-sm h-9 flex items-center">
+            <h2 className="text-gray-700 dark:text-white font-medium text-sm h-9 flex items-center">
               Raw samples
             </h2>
             <form
@@ -142,7 +142,7 @@ export default function RawTable() {
               onSubmit={handleFilterSubmit}
             >
               <label className="flex items-center gap-2 h-9">
-                <span className="text-gray-500 text-xs">Start</span>
+                <span className="text-gray-500 dark:text-white text-xs">Start</span>
                 <input
                   type="datetime-local"
                   value={startInput}
@@ -151,7 +151,7 @@ export default function RawTable() {
                 />
               </label>
               <label className="flex items-center gap-2 h-9">
-                <span className="text-gray-500 text-xs">End</span>
+                <span className="text-gray-500 dark:text-white text-xs">End</span>
                 <input
                   type="datetime-local"
                   value={endInput}
@@ -162,7 +162,7 @@ export default function RawTable() {
               <button
                 type="submit"
                 disabled={loading}
-                className="h-9 rounded-lg px-3 text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 rounded-lg px-3 text-sm font-medium border border-gray-200 text-gray-700 dark:text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Apply filter
               </button>
@@ -176,7 +176,7 @@ export default function RawTable() {
                   setPage(1);
                 }}
                 disabled={loading}
-                className="h-9 rounded-lg px-3 text-sm font-normal border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 rounded-lg px-3 text-sm font-normal border border-gray-200 text-gray-500 dark:text-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Clear
               </button>
@@ -254,7 +254,7 @@ export default function RawTable() {
         <div className="overflow-x-auto">
         <table className="w-full text-xs table-auto">
           <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-100">
+            <tr className="text-left text-gray-500 dark:text-white border-b border-gray-100">
               <th className="py-2 pr-2 font-medium">Timestamp</th>
               <th className="py-2 pr-2 font-medium">Devices</th>
               <th className="py-2 pr-2 font-medium">GW Ping</th>
@@ -271,17 +271,17 @@ export default function RawTable() {
           <tbody>
             {pageRows.map((row, i) => (
               <tr key={i} className="border-b border-gray-50">
-                <td className="py-1.5 pr-2 text-gray-800 font-normal">{formatVal(row.timestamp)}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.device_count, null)}`}>{row.device_count != null && row.device_count !== "" ? formatVal(row.device_count) : <span className="text-gray-300">—</span>}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.ping_gateway_avg_ms, THRESHOLDS.PING_WARN_MS)}`}>{row.ping_gateway_avg_ms != null && row.ping_gateway_avg_ms !== "" ? formatVal(row.ping_gateway_avg_ms) : <span className="text-gray-300">—</span>}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.ping_external_avg_ms, THRESHOLDS.PING_WARN_MS)}`}>{row.ping_external_avg_ms != null && row.ping_external_avg_ms !== "" ? formatVal(row.ping_external_avg_ms) : <span className="text-gray-300">—</span>}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.dns_resolution_ms, THRESHOLDS.DNS_WARN_MS)}`}>{row.dns_resolution_ms != null && row.dns_resolution_ms !== "" ? formatVal(row.dns_resolution_ms) : <span className="text-gray-300">—</span>}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.http_ttfb_ms, THRESHOLDS.TTFB_WARN_MS)}`}>{row.http_ttfb_ms != null && row.http_ttfb_ms !== "" ? formatVal(row.http_ttfb_ms) : <span className="text-gray-300">—</span>}</td>
-                <td className="py-1.5 pr-2 font-normal text-gray-800">{row.wifi_ssid != null && row.wifi_ssid !== "" ? String(row.wifi_ssid) : <span className="text-gray-300">—</span>}</td>
-                <td className="py-1.5 pr-2 font-normal text-gray-800">{row.wifi_rssi_dbm != null && row.wifi_rssi_dbm !== "" ? formatVal(row.wifi_rssi_dbm) : <span className="text-gray-300">—</span>}</td>
-                <td className={`py-1.5 pr-2 font-normal ${cellClass(row.wifi_snr_db, THRESHOLDS.SNR_WARN_DB, true)}`}>{row.wifi_snr_db != null && row.wifi_snr_db !== "" ? formatVal(row.wifi_snr_db) : <span className="text-gray-300">—</span>}</td>
-                <td className="py-1.5 pr-2 font-normal text-gray-800">{row.wifi_channel != null && row.wifi_channel !== "" ? formatVal(row.wifi_channel) : <span className="text-gray-300">—</span>}</td>
-                <td className="py-1.5 pr-2 font-normal text-gray-800">{row.wifi_tx_rate_mbps != null && row.wifi_tx_rate_mbps !== "" ? formatVal(row.wifi_tx_rate_mbps) : <span className="text-gray-300">—</span>}</td>
+                <td className="py-1.5 pr-2 text-gray-800 dark:text-gray-100 font-normal">{formatVal(row.timestamp)}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100 font-normal ${cellClass(row.device_count, null)}`}>{row.device_count != null && row.device_count !== "" ? formatVal(row.device_count) : <span className="text-gray-300">—</span>}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100  font-normal ${cellClass(row.ping_gateway_avg_ms, THRESHOLDS.PING_WARN_MS)}`}>{row.ping_gateway_avg_ms != null && row.ping_gateway_avg_ms !== "" ? formatVal(row.ping_gateway_avg_ms) : <span className="text-gray-300">—</span>}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100 font-normal ${cellClass(row.ping_external_avg_ms, THRESHOLDS.PING_WARN_MS)}`}>{row.ping_external_avg_ms != null && row.ping_external_avg_ms !== "" ? formatVal(row.ping_external_avg_ms) : <span className="text-gray-300">—</span>}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100 font-normal ${cellClass(row.dns_resolution_ms, THRESHOLDS.DNS_WARN_MS)}`}>{row.dns_resolution_ms != null && row.dns_resolution_ms !== "" ? formatVal(row.dns_resolution_ms) : <span className="text-gray-300">—</span>}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100 font-normal ${cellClass(row.http_ttfb_ms, THRESHOLDS.TTFB_WARN_MS)}`}>{row.http_ttfb_ms != null && row.http_ttfb_ms !== "" ? formatVal(row.http_ttfb_ms) : <span className="text-gray-300">—</span>}</td>
+                <td className="py-1.5 pr-2  font-normal text-gray-800 dark:text-gray-100">{row.wifi_ssid != null && row.wifi_ssid !== "" ? String(row.wifi_ssid) : <span className="text-gray-300">—</span>}</td>
+                <td className="py-1.5 pr-2 font-normal text-gray-800 dark:text-gray-100">{row.wifi_rssi_dbm != null && row.wifi_rssi_dbm !== "" ? formatVal(row.wifi_rssi_dbm) : <span className="text-gray-300">—</span>}</td>
+                <td className={`py-1.5 pr-2 dark:text-gray-100 font-normal ${cellClass(row.wifi_snr_db, THRESHOLDS.SNR_WARN_DB, true)}`}>{row.wifi_snr_db != null && row.wifi_snr_db !== "" ? formatVal(row.wifi_snr_db) : <span className="text-gray-300">—</span>}</td>
+                <td className="py-1.5 pr-2 font-normal text-gray-800 dark:text-gray-100">{row.wifi_channel != null && row.wifi_channel !== "" ? formatVal(row.wifi_channel) : <span className="text-gray-300">—</span>}</td>
+                <td className="py-1.5 pr-2 font-normal text-gray-800 dark:text-gray-100">{row.wifi_tx_rate_mbps != null && row.wifi_tx_rate_mbps !== "" ? formatVal(row.wifi_tx_rate_mbps) : <span className="text-gray-300">—</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -296,14 +296,14 @@ export default function RawTable() {
         >
           Previous
         </button>
-        <span className="text-gray-500 text-sm">
+        <span className="text-gray-500 dark:text-gray-100 text-sm">
           Showing {total === 0 ? 0 : start}–{end} of {total} results
         </span>
         <button
           type="button"
           onClick={() => setPage((p) => p + 1)}
           disabled={end >= total}
-          className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-sm text-gray-600 dark:text-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
         </button>

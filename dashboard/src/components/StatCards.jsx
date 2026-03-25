@@ -36,15 +36,15 @@ export default function StatCards({ summary }) {
   ];
 
   return (
-    <div className="dark:bg-zinc-800 bg-white grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className=" grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {cards.map(({ label, value, unit, border }) => (
         <div
           key={label}
-          className={` rounded-2xl shadow-sm border dark:border-gray-700 border-gray-100 border-l-4 ${border} p-5`}
+          className={` rounded-2xl shadow-sm border dark:bg-zinc-800 bg-white dark:border-zinc-700 border-gray-100 border-l-4 ${border} p-5`}
         >
-          <div className="text-gray-500 text-xs tracking-wide uppercase">{label}</div>
-          <div className="text-2xl font-medium text-gray-800 mt-1">{value}</div>
-          {unit && <div className="text-gray-400 text-xs mt-0.5">{unit}</div>}
+          <div className="text-gray-500 dark:text-white text-xs tracking-wide uppercase">{label}</div>
+          <div className="text-2xl font-medium text-gray-800 dark:text-white mt-1">{value}</div>
+          {unit && <div className="text-gray-400 dark:text-white text-xs mt-0.5">{unit}</div>}
         </div>
       ))}
     </div>
