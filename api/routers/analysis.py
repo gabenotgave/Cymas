@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from typing import Any
 
 import litellm
@@ -14,17 +15,46 @@ from api.routers.metrics import load_csv
 
 load_dotenv()
 
+litellm.drop_params = True
+
 router = APIRouter()
 
 METRICS = [
-        "http_ttfb_ms",
-        "ping_gateway_avg_ms",
-        "ping_external_avg_ms",
-        "dns_resolution_ms",
-        "wifi_snr_db",
-        "device_count",
-        "wifi_tx_rate_mbps",
-    ]
+    "http_ttfb_ms",
+    "ping_gateway_avg_ms",
+    "ping_external_avg_ms",
+    "dns_resolution_ms",
+    "wifi_snr_db",
+    "device_count",
+    "wifi_tx_rate_mbps",
+]
+
+METRIC_LABELS: dict[str, str] = {
+    "http_ttfb_ms": "HTTP TTFB",
+    "ping_gateway_avg_ms": "Gateway Ping",
+    "ping_external_avg_ms": "External Ping",
+    "dns_resolution_ms": "DNS Resolution",
+    "wifi_snr_db": "WiFi SNR",
+    "device_count": "Device Count",
+    "wifi_tx_rate_mbps": "WiFi TX Rate",
+}
+
+# Per-metric anomaly detection config: z-score threshold, absolute floor, and direction
+METRIC_THRESHOLDS: dict[str, dict[str, Any]] = {
+    "http_ttfb_ms":          {"z": 2.5, "abs_floor": 300,  "direction": "high"},
+    "ping_gateway_avg_ms":   {"z": 2.5, "abs_floor": 50,   "direction": "high"},
+    "ping_external_avg_ms":  {"z": 2.5, "abs_floor": 100,  "direction": "high"},
+    "dns_resolution_ms":     {"z": 2.5, "abs_floor": 200,  "direction": "high"},
+    "wifi_snr_db":           {"z": 2.5, "abs_floor": 15,   "direction": "low"},
+    "device_count":          {"z": 3.0, "abs_floor": None, "direction": "high"},
+    "wifi_tx_rate_mbps":     {"z": 2.5, "abs_floor": None, "direction": "low"},
+}
+
+MIN_CONSECUTIVE_SAMPLES = 2
+MIN_ANOMALY_FRACTION = 0.001
+CLUSTER_GAP_MINUTES = 30
+MAX_FINDINGS_FOR_LLM = 15
+MAX_WEAK_SIGNALS = 50
 
 
 class AnalysisRequest(BaseModel):
@@ -37,7 +67,6 @@ def filter_range(df: pd.DataFrame, start: str, end: str) -> pd.DataFrame:
     if "timestamp" not in df.columns:
         raise HTTPException(status_code=400, detail="No timestamp column found in data")
 
-    # Ensure timestamp is datetime
     if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
         df = df.copy()
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -59,13 +88,11 @@ def filter_range(df: pd.DataFrame, start: str, end: str) -> pd.DataFrame:
 def _round_float(value: Any) -> Any:
     if isinstance(value, (float, int)) and not pd.isna(value):
         return round(float(value), 2)
-    return value if value is None or not isinstance(value, float) else value
+    return value
 
 
 def compute_stats(df: pd.DataFrame) -> dict[str, Any]:
     """Compute summary statistics for key metrics within the filtered range."""
-    
-
     result: dict[str, Any] = {}
 
     for col in METRICS:
@@ -91,7 +118,6 @@ def compute_stats(df: pd.DataFrame) -> dict[str, Any]:
     except Exception:
         result["duration_minutes"] = None
 
-    # Most common SSID, if column exists and non-empty
     wifi_ssid = None
     if "wifi_ssid" in df.columns:
         try:
@@ -105,57 +131,248 @@ def compute_stats(df: pd.DataFrame) -> dict[str, Any]:
     return result
 
 
-SYSTEM_PROMPT = """You are a professional network engineer performing a root cause analysis on a home WiFi network using data from a monitoring tool called Cymas.
+def _anomaly_mask(series: pd.Series, cfg: dict[str, Any]) -> pd.Series:
+    """Return a boolean Series flagging anomalous values per metric config."""
+    numeric = pd.to_numeric(series, errors="coerce")
+    mean = numeric.mean()
+    std = numeric.std()
 
-STATISTICAL SIGNIFICANCE RULES — follow these strictly:
-- Only treat an anomaly as meaningful if it occurs in 2+ consecutive samples OR repeats more than 3 times across the selected time range.
-- Single isolated spikes must be mentioned briefly under Weak Signals but never elevated to a primary finding.
-- Home networks have natural variance of 20-40% in latency metrics. Do not flag variance within this range unless it is sustained.
+    if pd.isna(std) or std == 0:
+        return pd.Series(False, index=series.index)
 
-CORRELATION RULES:
-- Prioritize findings where 2 or more metrics degrade simultaneously.
-- A spike in one metric with no corresponding change in others is likely noise — say so explicitly.
-- Device count correlation is the strongest signal. Weight it heavily.
+    direction = cfg["direction"]
+    z = cfg["z"]
+    abs_floor = cfg.get("abs_floor")
 
-FORMATTING RULES:
-- All timestamps must be written in human readable UTC format: e.g. "Monday March 16, 2026 at 2:45 PM UTC".
-- Do not use any HTML, markdown, asterisks, pound signs, backticks, or special characters of any kind. Plain text only.
-- Follow the output format below exactly. Every label must appear on its own line. Do not combine labels. Do not skip labels. Do not reorder labels.
+    if direction == "high":
+        stat_mask = numeric > (mean + z * std)
+        if abs_floor is not None:
+            stat_mask = stat_mask & (numeric > abs_floor)
+    else:  # "low"
+        stat_mask = numeric < (mean - z * std)
+        if abs_floor is not None:
+            stat_mask = stat_mask & (numeric < abs_floor)
 
-OUTPUT FORMAT — copy this structure exactly for every response:
+    return stat_mask.fillna(False)
+
+
+def _find_runs(mask: pd.Series) -> list[tuple[int, int]]:
+    """Return list of (start_iloc, end_iloc) for each consecutive True run."""
+    runs: list[tuple[int, int]] = []
+    values = mask.to_numpy()
+    n = len(values)
+    i = 0
+    while i < n:
+        if values[i]:
+            j = i
+            while j < n and values[j]:
+                j += 1
+            runs.append((i, j - 1))
+            i = j
+        else:
+            i += 1
+    return runs
+
+
+@dataclass
+class AnomalyEvent:
+    metric: str
+    label: str
+    start_ts: pd.Timestamp
+    end_ts: pd.Timestamp
+    peak_value: float
+    mean_value: float
+    std_value: float
+    sample_count: int
+    is_single_spike: bool
+
+    @property
+    def z_score(self) -> float:
+        if self.std_value == 0:
+            return 0.0
+        return round((self.peak_value - self.mean_value) / self.std_value, 2)
+
+    @property
+    def confidence(self) -> str:
+        if self.sample_count >= 5:
+            return "High"
+        if self.is_single_spike:
+            return "Low"
+        return "Medium"
+
+    def time_str(self) -> str:
+        def _fmt(ts: pd.Timestamp) -> str:
+            day = ts.strftime("%d").lstrip("0") or "0"
+            hour = ts.strftime("%I").lstrip("0") or "12"
+            return ts.strftime(f"%A %B {day}, %Y at {hour}:%M %p UTC")
+
+        start_s = _fmt(self.start_ts)
+        if self.start_ts == self.end_ts:
+            return start_s
+        return f"{start_s} to {_fmt(self.end_ts)}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "metric": self.metric,
+            "label": self.label,
+            "start_ts": self.start_ts.isoformat(),
+            "end_ts": self.end_ts.isoformat(),
+            "peak_value": self.peak_value,
+            "mean_value": self.mean_value,
+            "std_value": self.std_value,
+            "sample_count": self.sample_count,
+            "is_single_spike": self.is_single_spike,
+            "z_score": self.z_score,
+            "confidence": self.confidence,
+            "time_str": self.time_str(),
+        }
+
+
+def detect_anomalies(df: pd.DataFrame) -> tuple[list[AnomalyEvent], list[AnomalyEvent]]:
+    """Detect anomalies per metric. Returns (findings, weak_signals)."""
+    findings: list[AnomalyEvent] = []
+    weak_signals: list[AnomalyEvent] = []
+
+    for metric, cfg in METRIC_THRESHOLDS.items():
+        if metric not in df.columns:
+            continue
+
+        series = pd.to_numeric(df[metric], errors="coerce")
+        mean_val = float(series.mean())
+        std_val = float(series.std()) if not pd.isna(series.std()) else 0.0
+
+        mask = _anomaly_mask(df[metric], cfg)
+
+        if mask.mean() < MIN_ANOMALY_FRACTION:
+            continue
+
+        runs = _find_runs(mask)
+        label = METRIC_LABELS.get(metric, metric)
+
+        for start_iloc, end_iloc in runs:
+            run_series = series.iloc[start_iloc : end_iloc + 1]
+            timestamps = df["timestamp"].iloc[start_iloc : end_iloc + 1]
+            sample_count = end_iloc - start_iloc + 1
+            is_single_spike = sample_count < MIN_CONSECUTIVE_SAMPLES
+
+            if cfg["direction"] == "high":
+                peak_value = float(run_series.max())
+            else:
+                peak_value = float(run_series.min())
+
+            event = AnomalyEvent(
+                metric=metric,
+                label=label,
+                start_ts=timestamps.iloc[0],
+                end_ts=timestamps.iloc[-1],
+                peak_value=round(peak_value, 2),
+                mean_value=round(mean_val, 2),
+                std_value=round(std_val, 2),
+                sample_count=sample_count,
+                is_single_spike=is_single_spike,
+            )
+
+            if sample_count < MIN_CONSECUTIVE_SAMPLES:
+                weak_signals.append(event)
+            else:
+                findings.append(event)
+
+    findings.sort(key=lambda e: e.start_ts)
+    weak_signals.sort(key=lambda e: e.start_ts)
+    return findings, weak_signals
+
+
+SYSTEM_PROMPT = """You are a network diagnostics assistant. You will receive pre-structured findings from an automated anomaly detector. Your only job is to write the output sections described below.
+
+STRICT RULES:
+- Do not invent, add, remove, or reorder findings.
+- Do not invent timestamps or values. Copy timestamps exactly as given.
+- Do not add commentary, analysis, or context beyond what is provided.
+- Produce plain text only. No markdown, no asterisks, no HTML, no special characters.
+- Follow the output format exactly. Every label must appear on its own line.
+
+OUTPUT FORMAT:
 
 SUMMARY
-Write 2-3 sentences here. Overall health assessment only.
+Write 2-3 sentences summarizing the overall network health based only on the findings provided.
 
 FINDINGS
-FINDING: One sentence describing what was observed.
-METRICS: List the affected metrics.
-TIME: Human readable UTC timestamp or range.
-CONFIDENCE: High, Medium, or Low.
-
-FINDING: One sentence describing what was observed.
-METRICS: List the affected metrics.
-TIME: Human readable UTC timestamp or range.
-CONFIDENCE: High, Medium, or Low.
-
-WEAK SIGNALS
-FINDING: One sentence describing a low confidence observation.
-METRICS: List the affected metrics.
-TIME: Human readable UTC timestamp or range.
-CONFIDENCE: Low.
+FINDING: One plain-English sentence describing the finding.
+METRICS: The affected metric label.
+TIME: Copy the timestamp exactly as given.
+CONFIDENCE: Copy the confidence level exactly as given.
 
 RECOMMENDATIONS
-ACTION: One specific actionable recommendation.
-ACTION: One specific actionable recommendation.
+ACTION: One specific actionable recommendation based on the findings.
 
-If there are no meaningful findings write "None." under FINDINGS. If the network is healthy write "None." under RECOMMENDATIONS. Do not add any extra labels, sections, or commentary outside of this structure."""
-
-
-Z_SCORE_THRESHOLD = 3
+If findings is empty write "None." under FINDINGS. If no findings exist write "None." under RECOMMENDATIONS."""
 
 
-def build_prompt(stats: dict[str, Any], anomalies: list[dict[str, Any]]) -> list[dict[str, str]]:
-    """Build a LiteLLM-compatible messages list from stats and anomalies."""
+def _format_events_for_prompt(events: list[AnomalyEvent]) -> str:
+    """Format a list of AnomalyEvent into a numbered plain-text block."""
+    if not events:
+        return "None."
+    lines = []
+    for i, e in enumerate(events, 1):
+        lines.append(
+            f"{i}. {e.label} | Time: {e.time_str()} | Peak: {e.peak_value} | "
+            f"Baseline mean: {e.mean_value} | Z-score: {e.z_score} | "
+            f"Consecutive samples: {e.sample_count} | Confidence: {e.confidence}"
+        )
+    return "\n".join(lines)
+
+
+def cluster_findings(findings: list[AnomalyEvent]) -> list[AnomalyEvent]:
+    """Merge findings of the same metric whose time ranges are within CLUSTER_GAP_MINUTES."""
+    if not findings:
+        return []
+
+    # Group by metric
+    groups: dict[str, list[AnomalyEvent]] = {}
+    for event in findings:
+        groups.setdefault(event.metric, []).append(event)
+
+    clustered: list[AnomalyEvent] = []
+    gap = pd.Timedelta(minutes=CLUSTER_GAP_MINUTES)
+
+    for metric, events in groups.items():
+        events = sorted(events, key=lambda e: e.start_ts)
+        direction = METRIC_THRESHOLDS.get(metric, {}).get("direction", "high")
+
+        merged = [events[0]]
+        for event in events[1:]:
+            prev = merged[-1]
+            if (event.start_ts - prev.end_ts) <= gap:
+                # Merge into prev
+                if direction == "high":
+                    new_peak = max(prev.peak_value, event.peak_value)
+                else:
+                    new_peak = min(prev.peak_value, event.peak_value)
+                merged[-1] = AnomalyEvent(
+                    metric=prev.metric,
+                    label=prev.label,
+                    start_ts=prev.start_ts,
+                    end_ts=max(prev.end_ts, event.end_ts),
+                    peak_value=new_peak,
+                    mean_value=prev.mean_value,
+                    std_value=prev.std_value,
+                    sample_count=prev.sample_count + event.sample_count,
+                    is_single_spike=False,
+                )
+            else:
+                merged.append(event)
+
+        clustered.extend(merged)
+
+    clustered.sort(key=lambda e: e.start_ts)
+    return clustered
+
+
+def build_prompt(
+    stats: dict[str, Any],
+    findings: list[AnomalyEvent],
+) -> list[dict[str, str]]:
+    """Build a LiteLLM-compatible messages list from stats and findings."""
     wifi_ssid = stats.get("wifi_ssid") or "unknown"
     start_time = stats.get("start_time") or "unknown"
     end_time = stats.get("end_time") or "unknown"
@@ -163,129 +380,20 @@ def build_prompt(stats: dict[str, Any], anomalies: list[dict[str, Any]]) -> list
     total_samples = stats.get("total_samples", 0)
 
     duration_str = f"{duration_minutes} min" if duration_minutes is not None else "unknown duration"
-    header_block = (
-        f"Network: {wifi_ssid}\n"
-        f"Time range: {start_time} to {end_time} ({duration_str}, {total_samples} samples)\n"
-    )
 
-    # Metric stats table
-    metric_defs = [
-        ("http_ttfb_ms", "HTTP TTFB (ms)"),
-        ("ping_gateway_avg_ms", "Gateway ping (ms)"),
-        ("ping_external_avg_ms", "External ping (ms)"),
-        ("dns_resolution_ms", "DNS resolution (ms)"),
-        ("wifi_snr_db", "WiFi SNR (dB)"),
-        ("device_count", "Device count"),
-        ("wifi_tx_rate_mbps", "WiFi TX rate (Mbps)"),
-    ]
-
-    lines = []
-    header = f"{'Metric':<24} {'Mean':>10} {'Min':>10} {'Max':>10} {'Std':>10}"
-    lines.append(header)
-    lines.append("-" * len(header))
-
-    for key, label in metric_defs:
-        mean_key = f"{key}_mean"
-        min_key = f"{key}_min"
-        max_key = f"{key}_max"
-        std_key = f"{key}_std"
-        if mean_key not in stats:
-            continue
-
-        def fmt_val(v: Any) -> str:
-            if v is None or (isinstance(v, float) and pd.isna(v)):
-                return "NA"
-            try:
-                return f"{float(v):.2f}"
-            except Exception:
-                return "NA"
-
-        mean = fmt_val(stats.get(mean_key))
-        vmin = fmt_val(stats.get(min_key))
-        vmax = fmt_val(stats.get(max_key))
-        std = fmt_val(stats.get(std_key))
-        line = f"{label:<24} {mean:>10} {vmin:>10} {vmax:>10} {std:>10}"
-        lines.append(line)
-
-    stats_block = "\n".join(lines)
-
-    # Anomalies block
-    if anomalies:
-        anomaly_lines = []
-        for a in anomalies:
-            ts = a.get("timestamp", "unknown")
-            metric = a.get("metric", "unknown")
-            value = a.get("value", "NA")
-            z = a.get("z_score", "NA")
-            anomaly_lines.append(
-                f"[{ts}] {metric} = {value} ({z}σ above mean)"
-            )
-        anomalies_block = "\n".join(anomaly_lines)
-    else:
-        anomalies_block = (
-            f"No statistical anomalies detected (no values exceeded {Z_SCORE_THRESHOLD} standard deviations above mean)."
-        )
+    findings_block = _format_events_for_prompt(findings)
 
     user_content = (
-        "Network context\n"
-        f"{header_block}\n"
-        "Metric statistics\n"
-        f"{stats_block}\n\n"
-        "Anomaly events\n"
-        f"{anomalies_block}"
+        f"Network: {wifi_ssid}\n"
+        f"Time range: {start_time} to {end_time} ({duration_str}, {total_samples} samples)\n\n"
+        f"FINDINGS ({len(findings)} detected)\n"
+        f"{findings_block}"
     )
 
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_content},
     ]
-
-
-def detect_anomalies(df: pd.DataFrame) -> list[dict[str, Any]]:
-    """Detect simple statistical anomalies based on mean + Z_SCORE_THRESHOLD*std threshold."""
-
-    anomalies: list[dict[str, Any]] = []
-
-    for col in METRICS:
-        if col not in df.columns:
-            continue
-
-        series = pd.to_numeric(df[col], errors="coerce")
-        mean = series.mean()
-        std = series.std()
-        if pd.isna(std) or std == 0:
-            continue
-
-        threshold = mean + Z_SCORE_THRESHOLD * std
-        mask = series > threshold
-        if not mask.any():
-            continue
-
-        # Skip metrics with too few or too infrequent anomalies
-        if mask.sum() < 3:
-            continue
-        if mask.mean() < 0.02:
-            continue
-
-        for idx in df.index[mask]:
-            row = df.loc[idx]
-            value = row.get(col)
-            if pd.isna(value):
-                continue
-            z_score = (value - mean) / std
-            ts = row.get("timestamp")
-            ts_iso = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
-            anomalies.append(
-                {
-                    "timestamp": ts_iso,
-                    "metric": col,
-                    "value": round(float(value), 2),
-                    "z_score": round(float(z_score), 2),
-                }
-            )
-
-    anomalies.sort(key=lambda a: a["timestamp"])
-    return anomalies
 
 
 @router.post("/run")
@@ -298,18 +406,32 @@ def run_analysis(request: AnalysisRequest) -> dict[str, Any]:
         else:
             filtered = df
         stats = compute_stats(filtered)
-        anomalies = detect_anomalies(filtered)
-        prompt = build_prompt(stats, anomalies)
+        findings, weak_signals = detect_anomalies(filtered)
+        findings = cluster_findings(findings)
+        if len(findings) > MAX_FINDINGS_FOR_LLM:
+            findings = sorted(findings, key=lambda e: e.z_score, reverse=True)[:MAX_FINDINGS_FOR_LLM]
+            findings.sort(key=lambda e: e.start_ts)
+        if len(weak_signals) > MAX_WEAK_SIGNALS:
+            weak_signals = sorted(weak_signals, key=lambda e: e.z_score, reverse=True)[:MAX_WEAK_SIGNALS]
+            weak_signals.sort(key=lambda e: e.start_ts)
+        prompt = build_prompt(stats, findings)
         response = litellm.completion(
             model=os.getenv("CYMAS_MODEL"),
             messages=prompt,
             stream=False,
+            temperature=0,
+            seed=42,
         )
         summary_text = response.choices[0].message.content
+        model_used = os.getenv("CYMAS_MODEL", "AI")
         return {
             "stats": stats,
-            "anomalies": anomalies,
-            "anomaly_count": len(anomalies),
+            "model": model_used,
+            "anomalies": [e.to_dict() for e in findings],
+            "anomaly_count": len(findings),
+            "finding_count": len(findings),
+            "weak_signal_count": len(weak_signals),
+            "weak_signals": [e.to_dict() for e in weak_signals],
             "summary": summary_text,
         }
     except HTTPException:
